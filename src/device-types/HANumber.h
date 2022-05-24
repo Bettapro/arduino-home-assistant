@@ -54,6 +54,10 @@ public:
 
     inline float getValue(){ return _value;}
 
+    void setMin(float min){_minn = min;}
+    void setMax(float max){_maxx = max;}
+    void setPrecisionMinMax(float precision_min_max){_precision_min_max = precision_min_max;}
+
     void setStep(float step){_step = step;}
 
     void setPrecision(uint8_t precision){_precision = precision;}
@@ -94,6 +98,9 @@ private:
     const char* _icon;
     bool _retain;
     float _step;
+    float _minn;
+    float _maxx;
+    uint8_t _precision_min_max;
 
     HANumber_CALLBACK(_valueCallback);
 

@@ -16,7 +16,10 @@ HANumber::HANumber(const char* uniqueId) :
     _retain(false),
     _value(0),
     _precision(0),
-    _step(1)
+    _step(1),
+    _minn(0),
+    _maxx(100),
+    _precision_min_max(0)
 {
 
 }
@@ -178,7 +181,16 @@ uint16_t HANumber::calculateSerializedLength(
     }
 
     // Field format: ,"step":"[STEP]"   
-    size +=  (_step > 1 ? floor(log10(_step)) : 1) + _precision + (_precision > 0 ? 1 : 0)  + 10;
+    size +=  (_step > 1 ? floor(log10(_step))+1 : 1) + _precision + (_precision > 0 ? 1 : 0)  + 10;  //10 - length of the JSON decorators for this field
+
+
+    // Field format: ,"min":"[MINN]"   
+    size +=  (_minn > 1 ? floor(log10(_minn))+1 : 1) + _precision_min_max + (_precision_min_max > 0 ? 1 : 0)  + 9; // 9 - length of the JSON decorators for this field
+
+
+    // Field format: ,"max":"[MAXX]"   
+    size +=  (_maxx > 1 ? floor(log10(_maxx))+1 : 1) + _precision_min_max + (_precision_min_max > 0 ? 1 : 0)  + 9; // 9 - length of the JSON decorators for this field
+
 
     // units of measurement
     if (_units != nullptr) {
@@ -230,6 +242,27 @@ bool HANumber::writeSerializedData(const char* serializedDevice) const
         dtostrf(_step, 0, _precision, str);
 
         static const char Prefix[] PROGMEM = {",\"step\":\""};
+        DeviceTypeSerializer::mqttWriteConstCharField(Prefix, str);
+    }
+
+    //min value
+    {
+
+        uint8_t digits = (_minn > 1 ? floor(log10(_minn)) : 1) + _precision_min_max + (_precision_min_max > 0 ? 1 : 0) ;
+        char str[digits + 1]; // null terminator, dot, minus sign
+        dtostrf(_minn, 0, _precision_min_max, str);
+
+        static const char Prefix[] PROGMEM = {",\"min\":\""};
+        DeviceTypeSerializer::mqttWriteConstCharField(Prefix, str);
+    }
+
+    //max value
+    {
+        uint8_t digits = (_maxx > 1 ? floor(log10(_maxx)) : 1) + _precision_min_max + (_precision_min_max > 0 ? 1 : 0) ;
+        char str[digits + 1]; // null terminator, dot, minus sign
+        dtostrf(_maxx, 0, _precision_min_max, str);
+
+        static const char Prefix[] PROGMEM = {",\"max\":\""};
         DeviceTypeSerializer::mqttWriteConstCharField(Prefix, str);
     }
 
